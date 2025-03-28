@@ -1,0 +1,138 @@
+[gd_scene load_steps=5 format=3 uid="uid://21rtpkafqx8x"]
+
+[ext_resource type="Script" uid="uid://dckbtv7m7gsg5" path="res://Scenes/connect_ui.gd" id="1_b1fjr"]
+[ext_resource type="Shader" uid="uid://btlina3dq7a3j" path="res://Scenes/scrollbg.gdshader" id="2_cvcob"]
+[ext_resource type="Texture2D" uid="uid://du4l3t051ld2c" path="res://assets/New Piskel.png" id="3_xlw8o"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4xmo1"]
+shader = ExtResource("2_cvcob")
+
+[node name="Connect_ui" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_b1fjr")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.235294, 0, 0, 1)
+
+[node name="pattern" type="TextureRect" parent="."]
+texture_repeat = 2
+material = SubResource("ShaderMaterial_4xmo1")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_xlw8o")
+
+[node name="Start_btn" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.683333
+anchor_top = 0.533333
+anchor_right = 0.95
+anchor_bottom = 0.648148
+offset_top = -1.52588e-05
+text = "READY!❌"
+metadata/_edit_use_anchors_ = true
+
+[node name="Join_btn" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.366667
+anchor_top = 0.533333
+anchor_right = 0.633333
+anchor_bottom = 0.648148
+offset_top = -1.52588e-05
+text = "JOIN"
+metadata/_edit_use_anchors_ = true
+
+[node name="Host_btn" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.533333
+anchor_right = 0.316667
+anchor_bottom = 0.648148
+offset_top = -1.52588e-05
+text = "HOST"
+metadata/_edit_use_anchors_ = true
+
+[node name="IP_ln" type="LineEdit" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.366667
+anchor_top = 0.385185
+anchor_right = 0.633333
+anchor_bottom = 0.5
+placeholder_text = "IP to join..."
+metadata/_edit_use_anchors_ = true
+
+[node name="Host_ip" type="LineEdit" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.385185
+anchor_right = 0.316667
+anchor_bottom = 0.5
+placeholder_text = "Your ip"
+editable = false
+metadata/_edit_use_anchors_ = true
+
+[node name="name_lbl" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.0888889
+anchor_right = 0.235417
+anchor_bottom = 0.174074
+text = "Your name:"
+metadata/_edit_use_anchors_ = true
+
+[node name="Name_ln" type="LineEdit" parent="name_lbl"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.04348
+anchor_right = 1.4382
+anchor_bottom = 2.39131
+placeholder_text = "Name..."
+max_length = 13
+metadata/_edit_use_anchors_ = true
+
+[node name="state_lbl" type="Label" parent="."]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.683333
+anchor_top = 0.414815
+anchor_right = 0.95
+anchor_bottom = 0.5
+text = "Not connected"
+metadata/_edit_use_anchors_ = true
+
+[node name="exit_btn" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.82963
+anchor_right = 0.135417
+anchor_bottom = 0.944444
+grow_vertical = 0
+text = "BACK TO MENU"
+metadata/_edit_use_anchors_ = true
+
+[connection signal="pressed" from="Start_btn" to="." method="_on_start_btn_pressed"]
+[connection signal="pressed" from="Join_btn" to="." method="_on_join_btn_pressed"]
+[connection signal="pressed" from="Host_btn" to="." method="_on_host_btn_pressed"]
+[connection signal="pressed" from="exit_btn" to="." method="_on_exit_btn_pressed"]
