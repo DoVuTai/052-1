@@ -41,5 +41,6 @@ anchor_bottom = 0.892593
 text = "EXIT"
 metadata/_edit_use_anchors_ = true
 
+[connection signal="pressed" from="single_btn" to="." method="_on_single_btn_pressed"]
 [connection signal="pressed" from="multi_btn" to="." method="_on_multi_btn_pressed"]
 [connection signal="pressed" from="exit_btn" to="." method="_on_exit_btn_pressed"]

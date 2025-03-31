@@ -45,10 +45,14 @@ var player_hand_node:Node
 var winner = ""
 var pause = false
 var end = false
+var rng = RandomNumberGenerator.new()
+var enemy_chance = 0
 
 func _ready() -> void:
-	Global.total_players_change.connect(server_disconnected)
-	multiplayer.server_disconnected.connect(server_disconnected)
+	if Global.online_mode:
+		Global.total_players_change.connect(server_disconnected)
+		multiplayer.server_disconnected.connect(server_disconnected)
+	else : rng.randomize()
 	end_game_scene.hide()
 	update_lives()
 	default_pos = {player_l.name: player_l.position, 
@@ -67,8 +71,8 @@ func _ready() -> void:
 	enemy_name_lbl.text = Global.enemy_name
 
 func _process(delta: float) -> void:
-	if multiplayer.is_server():
-		if multiplayer.get_peers().size()+1 < Global.total_players:
+	if Global.online_mode:
+		if multiplayer.is_server() && multiplayer.get_peers().size()+1 < Global.total_players:
 			Global.total_players_change.emit()
 	time += delta * frequency
 	floaty(player_l, stop_float[player_l.name])
@@ -118,8 +122,10 @@ func next_round():
 	hand_state_phase2 = {"l": 0, "r": 0}
 	enemy_hand_state = {"l": 0, "r": 0}
 	enemy_hand_remove = {player_l.name: false, player_r.name: false}
+	enemy_chance = 0
 	is_done = false
 	is_rematch = false
+	end = false
 	phase = 1
 	stop_float = {player_l.name: false, player_r.name: false, enemy_l.name: false, enemy_r.name: false}
 	hand_removed = {player_l.name: false, player_r.name: false}
@@ -210,10 +216,30 @@ func _on_done_btn_pressed() -> void:
 	if phase == 1:
 		hand_state = {"l": animation_index["l"], "r": animation_index["r"]}
 		hand_state_phase2 = hand_state.duplicate()
-		rpc("send_hand_state_data", hand_state)
+		if Global.online_mode: rpc("send_hand_state_data", hand_state)
+		else:
+			enemy_hand_state["l"] = rng.randi_range(0, 2)
+			enemy_hand_state["r"] = rng.randi_range(0, 2)
+			while enemy_hand_state["r"] == enemy_hand_state["l"]:
+				enemy_hand_state["r"] = rng.randi_range(0, 2)
+			show_hand()
 	elif phase == 2:
-		rpc("send_hand_remove_data", hand_removed)
-	rpc("check_both_done")
+		if Global.online_mode: rpc("send_hand_remove_data", hand_removed)
+		else:
+			for ekey in enemy_hand_state:
+				for pkey in hand_state:
+					if calc_win(enemy_hand_state[ekey], hand_state[pkey]) == enemy_hand_state[ekey]:
+						if ekey == "r": 
+							enemy_chance -= 1
+						else: 
+							enemy_chance += 1
+			if enemy_chance < 0: enemy_hand_remove[player_l.name] = true
+			elif enemy_chance > 0: enemy_hand_remove[player_l.name] = false
+			else: enemy_hand_remove[player_l.name] = bool(rng.randi_range(0, 1))
+			enemy_hand_remove[player_r.name] = !enemy_hand_remove[player_l.name]
+			print(enemy_chance)
+			show_result()
+	if Global.online_mode: rpc("check_both_done")
 
 @rpc("any_peer", "call_local")#PHASE 1
 func show_hand():
@@ -223,6 +249,7 @@ func show_hand():
 	phase2()
 
 func phase2():
+	phase += 1
 	done_btn.text = "DONE❌"
 	switch_l_btn.text = "❌"
 	switch_r_btn.text = "❌"
@@ -246,12 +273,12 @@ func calc_result():#PHASE 2
 		player_hand = hand_state_phase2["l"]
 		player_hand_node = player_l
 	
-	if ((player_hand-enemy_hand)==1) || player_hand-enemy_hand==-2:
+	if calc_win(player_hand, enemy_hand) == player_hand:
 		winner = "player"
 		impact_lbl.position = question_mark.position
 		enemy_lives -= 1
 		await attack(player_hand_node, enemy_hand_node)
-	elif ((player_hand-enemy_hand)==-1) || player_hand-enemy_hand==2 :
+	elif calc_win(player_hand, enemy_hand) == enemy_hand :
 		winner = "enemy"
 		impact_lbl.position = origin_pos[impact_lbl.name]
 		player_lives -= 1
@@ -259,6 +286,13 @@ func calc_result():#PHASE 2
 	else:
 		next_round()
 	update_lives()
+	
+func calc_win(ur_hand, bot_hand):
+	if ((ur_hand-bot_hand)==1) || ur_hand-bot_hand==-2:
+		return ur_hand
+	elif ((ur_hand-bot_hand)==-1) || ur_hand-bot_hand==2 :
+		return bot_hand
+	else : return -1
 	
 func attack(hand_win:Node, hand_lost:Node):#PHASE 2
 	stop_float[hand_win.name] = true
@@ -284,8 +318,8 @@ func attack(hand_win:Node, hand_lost:Node):#PHASE 2
 func check_both_done():
 	if is_done == true:
 		if phase == 1:
+			#phase += 1
 			rpc("show_hand")
-			phase += 1
 		elif phase == 2:
 			ask_remove_lbl.hide()
 			show_result()
@@ -294,7 +328,7 @@ func check_both_done():
 
 func show_result(): #PHASE 2
 	tween = create_tween()
-	if enemy_hand_remove[player_l.name] == true:
+	if enemy_hand_remove[player_l.name]:
 		tween.tween_property(enemy_l, "position:y", -150, 0.2)
 		await tween.finished
 		default_pos[enemy_l.name] -= Vector2(0, 150)
@@ -321,9 +355,11 @@ func update_winner(name):
 	winner_lbl.uppercase = true
 
 func _on_rematch_btn_pressed() -> void:
-	rematch_btn.text = "REMATCH✅"
-	rematch_btn.disabled = true
-	check_both_rematch.rpc()
+	if Global.online_mode:
+		rematch_btn.text = "REMATCH✅"
+		rematch_btn.disabled = true
+		check_both_rematch.rpc()
+	else: rematch()
 
 @rpc("any_peer", "call_local")
 func rematch():
@@ -334,8 +370,12 @@ func rematch():
 	update_lives()
 
 func _on_lobby_btn_pressed() -> void:
-	get_tree().change_scene_to_file("res://Scenes/connect_ui.tscn")
-	Global.peer.close()
+	if Global.online_mode:
+		get_tree().change_scene_to_file("res://Scenes/connect_ui.tscn")
+		Global.peer.close()
+	else:
+		get_tree().change_scene_to_file("res://Scenes/main_menu.tscn")
+	Engine.time_scale = 1
 
 @rpc("any_peer", "call_local")
 func check_both_rematch():

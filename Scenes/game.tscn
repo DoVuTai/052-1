@@ -8,7 +8,6 @@
 [ext_resource type="Shader" uid="uid://btlina3dq7a3j" path="res://Scenes/scrollbg.gdshader" id="6_1l0tm"]
 [ext_resource type="Texture2D" uid="uid://du4l3t051ld2c" path="res://assets/New Piskel.png" id="7_v158k"]
 [ext_resource type="Script" uid="uid://dehweukeoq2uh" path="res://Scenes/camera_2d.gd" id="8_v158k"]
-[ext_resource type="Script" uid="uid://cjcq8jnnoc7c4" path="res://Scenes/end_game_scene.gd" id="9_h4fw4"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h4fw4"]
 shader = ExtResource("6_1l0tm")
@@ -102,6 +101,14 @@ animations = [{
 "name": &"unknown",
 "speed": 5.0
 }]
+
+[sub_resource type="GDScript" id="GDScript_v158k"]
+script/source = "extends CanvasLayer
+
+
+
+	
+"
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -295,7 +302,7 @@ anchor_mode = 0
 script = ExtResource("8_v158k")
 
 [node name="end_game_layer" type="CanvasLayer" parent="."]
-script = ExtResource("9_h4fw4")
+script = SubResource("GDScript_v158k")
 
 [node name="ColorRect" type="ColorRect" parent="end_game_layer"]
 anchors_preset = 15
@@ -329,7 +336,7 @@ anchors_preset = -1
 anchor_top = 0.888889
 anchor_right = 0.3
 anchor_bottom = 1.0037
-text = "BACK TO LOBBY"
+text = "BACK TO MENU"
 
 [connection signal="pressed" from="switch_l_btn" to="." method="_on_switch_l_btn_pressed"]
 [connection signal="pressed" from="switch_r_btn" to="." method="_on_switch_r_btn_pressed"]
